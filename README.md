@@ -3,7 +3,7 @@
 > See what's hidden. No dump required.
 
 GhostEye is a live memory forensics tool written in Python, built on top of native Windows APIs (`ctypes`).  
-
+Inspired by Volatility, it operates directly on running processes without creating a memory dump.
 
 ---
 
@@ -144,7 +144,7 @@ Detects inline hooks in `ntdll.dll` by comparing the first 5 bytes of each expor
 **Hook detection:**
 ```
 disk:   4c 8b d1 b8 50   → mov r10,rcx / mov eax,syscall  (original)
-memory: e9 bb e1 7f fd   → JMP to EDR trampoline           (hooked)
+memory: e9 bb e1 7f fd   → JMP to EDR           (hooked)
 ```
 
 **Vendor identification:**  
@@ -192,9 +192,48 @@ Computes the JMP destination address and resolves the owning DLL via `VirtualQue
 
 ---
 
+## Roadmap
+
+### v1.1 — Extended Hook Detection
+- [ ] Hook detection in `kernel32.dll`, `user32.dll`, `win32u.dll`
+- [ ] Detect `PUSH/RET` hooks (alternative to `JMP`)
+- [ ] Detect `MOV RAX / JMP RAX` hooks (5+ byte variants)
+- [ ] Export hook report as JSON
+
+### v1.2 — Handle Analysis
+- [ ] List open handles per process (files, registry keys, mutexes, pipes)
+- [ ] Flag suspicious handle names (e.g. `\\Device\\PhysicalMemory`)
+- [ ] Detect processes holding handles to LSASS (credential dumping indicator)
+
+### v1.3 — Process Hollowing Detection
+- [ ] Compare on-disk PE with in-memory PE for each process
+- [ ] Detect mismatches in section sizes and entry points
+- [ ] Flag `MZ` headers in `PRIVATE` memory regions that don't match any loaded module
+
+### v1.4 — Kernel-Level Analysis
+- [ ] Read kernel structures via `NtQuerySystemInformation` (SystemProcessInformation)
+- [ ] Cross-view detection using kernel PID list vs userland snapshot
+- [ ] Detect DKOM (Direct Kernel Object Manipulation) — hidden processes at kernel level
+- [ ] Detect SSDT hooks (System Service Descriptor Table patching)
+
+### v1.5 — Network & Threat Intel
+- [ ] UDP connections support (`GetExtendedUdpTable`)
+- [ ] Automatic IP reputation lookup (AbuseIPDB, VirusTotal)
+- [ ] DNS cache inspection
+- [ ] GeoIP resolution for remote addresses
+
+### v2.0 — Reporting & Integration
+- [ ] Full JSON export for SIEM ingestion (Elastic, Splunk)
+- [ ] HTML report generation
+- [ ] MITRE ATT&CK technique tagging per finding
+- [ ] Scheduled scan mode with delta comparison (baseline vs current state)
+- [ ] Remote scan via named pipe or WinRM
+
+---
+
 ## Disclaimer
 
-GhostEye is an educational tool   
+GhostEye is an educational tool built for forensics and malware analysis training.  
 **Use only on systems you are authorized to analyze.**  
 The author is not responsible for any misuse.
 
